@@ -1,0 +1,836 @@
+<html><head><base href=".">
+<meta charset="utf-8">
+<title>2D Top Down Adventure - Lite Version</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500&display=swap');
+
+    body {
+        margin: 0;
+        overflow: hidden;
+        background: #333;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    
+    #gameCanvas {
+        background: #1a1a1a;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .shake {
+        animation: shake 0.1s ease-in-out;
+    }
+    
+    @keyframes shake {
+        0%, 100% { transform: none; }
+    }
+    
+    #instructions {
+        position: fixed;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        font-family: Arial, sans-serif;
+        background: rgba(0,0,0,0.5);
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    #healthBar {
+        position: fixed;
+        bottom: 40px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 200px;
+        height: 10px;
+        background: #333;
+        border: 1px solid #fff;
+    }
+
+    #healthFill {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(to right, #ff0000, #ff5555);
+        transition: width 0.3s ease;
+    }
+
+    #roundDisplay {
+        position: fixed;
+        bottom: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        font-family: Arial, sans-serif;
+        background: rgba(0,0,0,0.5);
+        padding: 5px 10px;
+        border-radius: 5px;
+    }
+
+    #cashDisplay {
+        position: fixed;
+        bottom: 70px;
+        left: calc(50% + 80px);
+        transform: translateX(-50%);
+        color: white;
+        font-family: Arial, sans-serif;
+        background: rgba(0,0,0,0.5);
+        padding: 5px 10px;
+        border-radius: 5px;
+    }
+
+    #shop {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.9);
+        padding: 20px;
+        border-radius: 15px;
+        color: white;
+        font-family: 'Montserrat', sans-serif;
+        z-index: 1000;
+        text-align: center;
+        width: 80%;
+        max-width: 600px;
+    }
+
+    #shopItems {
+        margin-top: 10px;
+        text-align: left;
+    }
+
+    .shop-category {
+        margin: 20px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+        padding-bottom: 10px;
+    }
+
+    .shop-category-title {
+        color: #fff;
+        font-size: 1.2em;
+        margin-bottom: 10px;
+    }
+
+    .shop-item {
+        background: rgba(255,255,255,0.1);
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+    }
+
+    .shop-item:hover {
+        background: rgba(255,255,255,0.2);
+    } 
+    
+    #betaText {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        color: white;
+        font-family: 'Montserrat', sans-serif;
+        opacity: 0.25;
+        z-index: 1;
+    }
+
+    .round-transition {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        font-family: 'Montserrat', sans-serif;
+        padding: 15px 25px;
+        background: rgba(0,0,0,0.5);
+        border-radius: 10px;
+        z-index: 10;
+    }
+
+    #gameOverScreen {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.9);
+        z-index: 1000;
+        color: white;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    .game-over-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        background: rgba(255,255,255,0.1);
+        padding: 30px;
+        border-radius: 15px;
+    }
+
+    #betaMenu {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.9);
+        padding: 20px;
+        border-radius: 15px;
+        color: white;
+        font-family: 'Montserrat', sans-serif;
+        z-index: 1000;
+        text-align: center;
+    }
+
+    #betaMenu input {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        margin: 10px;
+    }
+
+    #betaMenu button {
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 5px;
+    }
+
+    #betaMenu button:hover {
+        background: rgba(255,255,255,0.3);
+    }
+
+    #settingsMenu {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.9);
+        padding: 30px;
+        border-radius: 15px;
+        z-index: 2001;
+        color: white;
+    }
+
+    #worldMap {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.9);
+        z-index: 2000;
+    }
+
+    .world-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        padding: 30px;
+        color: white;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    .world-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        margin: 20px;
+        max-height: 70vh;
+        overflow-y: auto;
+        padding-right: 20px;
+    }
+
+    .world-option {
+        background: rgba(255,255,255,0.1);
+        padding: 20px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .world-option:hover {
+        background: rgba(255,255,255,0.2);
+    }
+
+    .world-option.locked {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .world-name {
+        font-size: 1.2em;
+        margin-bottom: 10px;
+    }
+
+    .world-desc {
+        font-size: 0.9em;
+        opacity: 0.8;
+    }
+</style>
+</head>
+<body>
+
+<div id="betaText">LITE VERSION</div>
+<div id="instructions">Use WASD to move, Click to shoot</div>
+<div id="healthBar"><div id="healthFill"></div></div>
+<div id="roundDisplay"></div>
+<div id="cashDisplay"></div>
+<canvas id="gameCanvas"></canvas>
+<div id="gameOverScreen">
+    <div class="game-over-content">
+        <h1>Game Over</h1>
+        <p>You reached Round <span id="finalRound"></span></p>
+        <button onclick="resetGame()" class="restart-button">Play Again</button>
+    </div>
+</div>
+
+<!-- Add this after the gameOverScreen div -->
+<div id="shop">
+    <div id="shopItems"></div>
+</div>
+
+<!-- Add this before the canvas -->
+<div id="betaMenu">
+    <h2>Beta Menu</h2>
+    <p>Select Round:</p>
+    <input type="number" id="roundInput" min="1" value="1">
+    <button onclick="setRound()">Set Round</button>
+    <button onclick="closeBetaMenu()">Close</button>
+</div>
+
+<div id="settingsMenu">
+    <h2>Settings</h2>
+    <div class="setting-item">
+        <label>Music Volume</label>
+        <input type="range" min="0" max="100" value="50">
+    </div>
+    <div class="setting-item">
+        <label>SFX Volume</label>
+        <input type="range" min="0" max="100" value="50">
+    </div>
+    <button class="menu-button" onclick="closeSettings()">Close</button>
+</div>
+
+<!-- Add this after the settingsMenu div -->
+<div id="worldMap">
+    <div class="world-content">
+        <h2>Choose Your Next World</h2>
+        <div class="world-grid" id="worldGrid"></div>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Set canvas to window size
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+const BULLET_SPEED = 10;
+const ENEMIES_PER_ROUND = 10;
+const ENEMY_SPAWN_INTERVAL = 1000;
+const CAMERA_ZOOM = 1; // Added the missing constant
+
+let bullets = [];
+let enemies = [];
+let currentRound = 1;
+let enemiesRemainingInRound = ENEMIES_PER_ROUND;
+let lastSpawnTime = 0;
+let lastMouseX = 0;
+let lastMouseY = 0;
+
+// Simplified Particle System
+class ParticleSystem {
+    constructor() {
+        this.particles = [];
+    }
+
+    createParticle() {
+        // Do nothing - disabled in lite version
+    }
+
+    createExplosion() {
+        // Do nothing - disabled in lite version
+    }
+}
+
+const particleSystem = new ParticleSystem();
+
+const player = {
+    x: canvas.width / 2,
+    y: canvas.height / 2,
+    width: 30,
+    height: 30,
+    speed: 5,
+    velX: 0,
+    velY: 0,
+    lastVelX: 0,
+    lastVelY: 0,
+    trail: [],
+    health: 100,
+    maxHealth: 100,
+    invulnerable: false,
+    invulnerabilityTime: 1000,
+    damageResistance: 1,
+    healthRegen: 0,
+    shield: 0,
+    abilities: {}
+};
+
+
+// Update the gameState.shopItems structure.
+const gameState = {
+    isPaused: false,
+    money: 0,
+    currentWeapon: 'basic',
+    weaponStats: {
+        basic: {
+            damage: 1,
+            fireRate: 1,
+            range: 500,
+            speed: 10
+        }
+    },
+    shopItems: {
+        playerUpgrades: [],
+        weapons: [],
+        abilities: []
+    },
+    worlds: {
+        forest: {
+            name: "Forest",
+            description: "Standard starting area",
+            background: "#1a3d1b",
+            unlocked: true
+        },
+        desert: {
+            name: "Desert",
+            description: "Fast enemies",
+            background: "#3d2f1b",
+            unlocked: false,
+            requiredRound: 10
+        },
+        cave: {
+            name: "Cave",
+            description: "Tough enemies",
+            background: "#1a1a1a",
+            unlocked: false,
+            requiredRound: 20
+        },
+        ice: {
+            name: "Ice Field",
+            description: "Slippery terrain",
+            background: "#1b3d3d",
+            unlocked: false,
+            requiredRound: 30
+        },
+        volcano: {
+            name: "Volcano",
+            description: "High damage",
+            background: "#3d1b1b",
+            unlocked: false,
+            requiredRound: 40
+        }
+    },
+    currentWorld: "forest"
+};
+
+class Bullet {
+    constructor(x, y, dirX, dirY) {
+        this.x = x;
+        this.y = y;
+        this.radius = 5;
+        this.speed = BULLET_SPEED;
+        this.dirX = dirX;
+        this.dirY = dirY;
+        this.color = '#FFE5A3'; // Pastel yellow
+    }
+
+    update() {
+        this.x += this.dirX * this.speed;
+        this.y += this.dirY * this.speed;
+    }
+
+    draw() {
+        ctx.beginPath();
+        ctx.fillStyle = this.color;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
+    }
+}
+
+class Enemy {
+    constructor(type = 'basic') {
+        this.type = type;
+        this.health = 1;
+        this.size = 20;
+        this.speed = 2;
+        this.color = '#789DBC';
+        this.spawnSide = Math.floor(Math.random() * 4);
+
+        switch(this.spawnSide) {
+            case 0: this.x = Math.random() * canvas.width; this.y = -this.size; break;
+            case 1: this.x = canvas.width + this.size; this.y = Math.random() * canvas.height; break;
+            case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + this.size; break;
+            case 3: this.x = -this.size; this.y = Math.random() * canvas.height; break;
+        }
+    }
+
+    update() {
+        const dx = player.x - this.x;
+        const dy = player.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        this.x += (dx / dist) * this.speed;
+        this.y += (dy / dist) * this.speed;
+    }
+
+    draw() {
+        ctx.beginPath();
+        ctx.fillStyle = this.color;
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
+    }
+}
+
+let cameraX = 0;
+let cameraY = 0;
+
+function updateHealthBar() {
+    const healthFill = document.getElementById('healthFill');
+    healthFill.style.width = `${(player.health / player.maxHealth) * 100}%`;
+}
+
+function updateCashDisplay() {
+    document.getElementById('cashDisplay').textContent = `$${gameState.money}`;
+}
+
+function damagePlayer(amount) {
+    if (!player.invulnerable) {
+        player.health = Math.max(0, player.health - (amount * (player.damageResistance || 1)));
+        updateHealthBar();
+        
+        player.invulnerable = true;
+        setTimeout(() => player.invulnerable = false, player.invulnerabilityTime);
+
+        if (player.health <= 0) {
+            showGameOver();
+        }
+    }
+}
+
+function showGameOver() {
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    document.getElementById('finalRound').textContent = currentRound;
+    gameOverScreen.style.display = 'block';
+    gameState.isPaused = true;
+}
+
+function resetGame() {
+    document.getElementById('gameOverScreen').style.display = 'none';
+    gameState.isPaused = false; 
+    currentRound = 1;
+    enemiesRemainingInRound = ENEMIES_PER_ROUND;
+    player.x = canvas.width / 2;
+    player.y = canvas.height / 2;
+    enemies.length = 0;
+    bullets.length = 0;
+    gameState.money = 0;
+    updateHealthBar();
+    updateCashDisplay();
+}
+
+// Call startGame immediately when page loads
+function startGame() {
+    player.speed = 5;
+    player.maxHealth = 100;
+    player.health = 100;
+    updateHealthBar();
+    gameState.isPaused = false;
+}
+
+function spawnEnemies() {
+    const currentTime = Date.now();
+    if (currentTime - lastSpawnTime > ENEMY_SPAWN_INTERVAL && enemiesRemainingInRound > 0) {
+        enemies.push(new Enemy());
+        enemiesRemainingInRound--;
+        lastSpawnTime = currentTime;
+    }
+    
+    if (enemiesRemainingInRound <= 0 && enemies.length === 0) {
+        currentRound++;
+        player.health = Math.min(player.maxHealth, player.health + 20); 
+        updateHealthBar();
+    }
+    
+    document.getElementById('roundDisplay').textContent = `Round ${currentRound}`;
+}
+
+function updateRound() {
+    // Check for world unlocks
+    Object.values(gameState.worlds).forEach(world => {
+        if (!world.unlocked && currentRound >= world.requiredRound) {
+            world.unlocked = true;
+        }
+    });
+    
+    if (currentRound % 5 === 0) {
+        enemies.push(new Enemy());
+    }
+
+    enemiesRemainingInRound = Math.floor(ENEMIES_PER_ROUND * (1 + currentRound * 0.2));
+}
+
+function showShop() {
+    const shop = document.getElementById('shop');
+    const shopItems = document.getElementById('shopItems');
+    shopItems.innerHTML = '';
+    shop.style.display = 'block';
+    gameState.isPaused = true;
+}
+
+function closeShop() {
+    document.getElementById('shop').style.display = 'none';
+    gameState.isPaused = false;
+}
+
+function showWorldMap() {
+    const worldMap = document.getElementById('worldMap');
+    const worldGrid = document.getElementById('worldGrid');
+    worldGrid.innerHTML = '';
+    
+    for (const [worldId, world] of Object.entries(gameState.worlds)) {
+        const worldElement = document.createElement('div');
+        worldElement.className = `world-option ${!world.unlocked ? 'locked' : ''}`;
+        
+        worldElement.innerHTML = `
+            <div class="world-name">${world.name}</div>
+            <div class="world-desc">${world.description}</div>
+            ${!world.unlocked ? `<div class="world-req">Unlocks at Round ${world.requiredRound}</div>` : ''}
+        `;
+        
+        if (world.unlocked) {
+            worldElement.onclick = () => selectWorld(worldId);
+        }
+        
+        worldGrid.appendChild(worldElement);
+    }
+    
+    worldMap.style.display = 'block';
+    gameState.isPaused = true;
+}
+
+function selectWorld(worldId) {
+    const world = gameState.worlds[worldId];
+    if (!world || !world.unlocked) return;
+    
+    gameState.currentWorld = worldId;
+    document.getElementById('worldMap').style.display = 'none';
+    gameState.isPaused = false;
+
+    const background = world.background || '#1a1a1a'; 
+    document.getElementById('gameCanvas').style.backgroundColor = background;
+
+    enemies = [];
+    enemiesRemainingInRound = ENEMIES_PER_ROUND;
+}
+
+// Check for collisions
+function checkCollisions() {
+    for (let i = bullets.length - 1; i >= 0; i--) {
+        for (let j = enemies.length - 1; j >= 0; j--) {
+            const dx = bullets[i].x - enemies[j].x;
+            const dy = bullets[i].y - enemies[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            if (dist < bullets[i].radius + enemies[j].size) {
+                bullets.splice(i, 1);
+                const roundBonus = Math.floor(currentRound / 5);
+                gameState.money += 5 + roundBonus;
+                enemies.splice(j, 1);
+                updateCashDisplay();
+                break;
+            }
+        }
+    }
+    
+    for (let enemy of enemies) {
+        const dx = player.x - enemy.x;
+        const dy = player.y - enemy.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist < player.width / 2 + enemy.size) {
+            damagePlayer(enemy.damage || 1);
+        }
+    }
+}
+
+function update() {
+    if (!gameState.isPaused) {
+        player.velX = player.velY = 0;
+        
+        if (keys.w) player.velY -= 1;
+        if (keys.s) player.velY += 1;
+        if (keys.a) player.velX -= 1;  
+        if (keys.d) player.velX += 1;  
+
+        if (player.velX !== 0 || player.velY !== 0) {
+            const magnitude = Math.sqrt(player.velX * player.velX + player.velY * player.velY);
+            player.velX = (player.velX / magnitude) * player.speed;
+            player.velY = (player.velY / magnitude) * player.speed;
+        }
+
+        player.x += player.velX;
+        player.y += player.velY;
+
+        player.x = Math.max(player.width / 2, Math.min(canvas.width - player.width / 2, player.x));
+        player.y = Math.max(player.height / 2, Math.min(canvas.height - player.height / 2, player.y));
+        
+        bullets.forEach(bullet => bullet.update());
+        
+        enemies.forEach(enemy => enemy.update());
+        
+        spawnEnemies();
+        checkCollisions();
+    }
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.translate(-cameraX, -cameraY);
+        
+    bullets.forEach(bullet => bullet.draw());
+    enemies.forEach(enemy => enemy.draw());
+    
+    ctx.beginPath();
+    ctx.fillStyle = '#ff5555';
+    ctx.arc(player.x, player.y, player.width / 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.closePath();
+
+    ctx.restore();
+}
+
+function gameLoop() {
+    update();
+    draw();
+    requestAnimationFrame(gameLoop);
+}
+
+const keys = {
+    w: false,
+    a: false,
+    s: false,
+    d: false
+};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() in keys) {
+        keys[e.key.toLowerCase()] = true;
+    }
+});
+
+document.addEventListener('keyup', (e) => {
+    if (e.key.toLowerCase() in keys) {
+        keys[e.key.toLowerCase()] = false;
+    }
+});
+
+// Fixed canvas click handler
+canvas.addEventListener('click', (e) => {
+    if (gameState.isPaused) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const dx = mouseX - player.x;
+    const dy = mouseY - player.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    
+    bullets.push(new Bullet(player.x, player.y, dx/dist, dy/dist));
+    
+    canvas.classList.add('shake');
+    setTimeout(() => canvas.classList.remove('shake'), 100);
+});
+
+// Add mouse move tracking 
+canvas.addEventListener('mousemove', (e) => {
+    lastMouseX = e.clientX;
+    lastMouseY = e.clientY;
+});
+
+// Add mousedown/mouseup event listeners after the existing click listener:
+let isHoldingShoot = false;
+canvas.addEventListener('mousedown', () => isHoldingShoot = true);
+canvas.addEventListener('mouseup', () => isHoldingShoot = false);
+
+// Initialize health bar
+updateHealthBar();
+updateCashDisplay(); // Initial cash display
+startGame(); // Start the game immediately when loaded
+gameLoop();
+
+// Modify the beta text click handler by adding this:
+document.getElementById('betaText').addEventListener('click', showBetaMenu);
+
+// Add these functions just before the startGame() function:
+function showBetaMenu() {
+    document.getElementById('betaMenu').style.display = 'block';
+    gameState.isPaused = true;
+}
+
+function closeBetaMenu() {
+    document.getElementById('betaMenu').style.display = 'none';
+    gameState.isPaused = false;
+}
+
+function setRound() {
+    const roundInput = document.getElementById('roundInput');
+    const newRound = parseInt(roundInput.value);
+    if (newRound && newRound > 0) {
+        currentRound = newRound;
+        enemiesRemainingInRound = ENEMIES_PER_ROUND;
+        closeBetaMenu();
+    }
+}
+
+// Add this function to close settings menu
+function closeSettings() {
+    document.getElementById('settingsMenu').style.display = 'none';
+    gameState.isPaused = false;
+}
+</script>
+
+</body></html>
